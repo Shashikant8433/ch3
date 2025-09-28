@@ -1,0 +1,31 @@
+# Compiled output
+/dist
+/build
+/out
+/target
+
+# Dependencies
+node_modules/
+/vendor
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE specific files
+.idea/
+.vscode/
+*.swp
+*~
+
+# Environment variables
+.env
+.flaskenv
+
+# Testing and coverage
+/coverage
