@@ -6,38 +6,54 @@ app.get('/', (req, res)=>{
 });
 
 app.get('/add', (req, res)=>{
-    const a = req.query.a;
-    const b = req.query.b;
-    console.log(a, b);
-    res.send({
-        output: parseInt(a) + parseInt(b)
+    const a = req.query.a && parseInt(req.query.a);
+    const b = req.query.b && parseInt(req.query.b);
+    if(typeof a === 'number' && typeof b == 'number'){
+        res.status(200).send({
+            output: a + b
+        })
+    }
+    res.status(400).send({
+        error: 'Invalid operators'
     })
 });
 
 app.get('/subtract', (req, res)=>{
-    const a = req.query.a;
-    const b = req.query.b;
-    console.log(a, b);
-    res.send({
-        output: parseInt(a) - parseInt(b)
+    const a = req.query.a && parseInt(req.query.a);
+    const b = req.query.b && parseInt(req.query.b);
+    if(typeof a === 'number' && typeof b == 'number'){
+        res.status(200).send({
+            output: a - b
+        })
+    }
+    res.status(400).send({
+        error: 'Invalid operators'
     })
 })
 
 app.get('/multiply', (req, res)=>{
-    const a = req.query.a;
-    const b = req.query.b;
-    console.log(a, b);
-    res.send({
-        output: parseInt(a) * parseInt(b)
+    const a = req.query.a && parseInt(req.query.a);
+    const b = req.query.b && parseInt(req.query.b);
+    if(typeof a === 'number' && typeof b == 'number'){
+        res.status(200).send({
+            output: a * b
+        })
+    }
+    res.status(400).send({
+        error: 'Invalid operators'
     })
 })
 
 app.get('/divide', (req, res)=>{
-    const a = req.query.a;
-    const b = req.query.b;
-    console.log(a, b);
-    res.send({
-        output: parseInt(a) / parseInt(b)
+    const a = req.query.a && parseInt(req.query.a);
+    const b = req.query.b && parseInt(req.query.b);
+    if(typeof a === 'number' && typeof b == 'number'){
+        res.status(200).send({
+            output: a / b
+        })
+    }
+    res.status(400).send({
+        error: 'Invalid operators'
     })
 })
 
