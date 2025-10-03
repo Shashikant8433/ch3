@@ -1,5 +1,6 @@
 const express = require('express')
-
+const jwt = require('jsonwebtoken')
+const JWT_SECRET = 'somerandomstring'
 const app = express()
 app.use(express.json())
 
@@ -17,8 +18,9 @@ app.get('/users', (req, res)=>{
 
 app.get('/me', (req, res) =>{
     const token = req.headers.token;
-    console.log(token,'token');
-    const foundUser = users.find(user => user.token === token)
+    const decodedToken = jwt.verify(token, JWT_SECRET);
+    const username = decodedToken.username;
+    const foundUser = users.find(user => user.username === username)
     if(foundUser){
         res.status(200).json({
             message: '',
@@ -47,9 +49,6 @@ const singupHandler = (req, res)=>{
 }
 app.post('/signup', singupHandler)
 
-const generateToken = () => {
-    return Math.random().toString();
-}
 
 const singinHandler = (req, res)=>{
     const user = req.body.username;
@@ -57,8 +56,10 @@ const singinHandler = (req, res)=>{
     const foundUser = users.find(savedUser => savedUser.username === user && savedUser.password === pass)
 
     if(foundUser){
-        const token = generateToken();
-        foundUser.token = token
+        const token = jwt.sign({
+            username: user
+        }, JWT_SECRET);
+        // foundUser.token = token // NO need to store the token or JWT in db as JWT is a stateless token
         res.status(200).json({
             message: 'Signed in successfully',
             token,
