@@ -1,77 +1,97 @@
-const express = require('express')
-const jwt = require('jsonwebtoken')
-const JWT_SECRET = 'somerandomstring'
-const app = express()
-app.use(express.json())
+const express = require('express');
+const jwt = require('jsonwebtoken');
+
+const app = express();
+app.use(express.json());
+const JWT_SECRET = 'somerandomsecret'
 
 const users = [];
 
+const authMiddleware = function(req, res, next){
+    const token = req.headers.token;
+    try {
+        const decodedData = jwt.verify(token, JWT_SECRET)
+        const decodedUser = decodedData.username;
+        const foundUser = users.find(user => user.username === decodedUser)
+        if(foundUser){
+            req.currentUser = foundUser;
+            next();
+        } else {
+            res.status(404).json({
+                message: 'user not found'
+            })
+        }
+    } catch(error){
+        res.status(400).json({
+            message: 'Invalid token'
+        });
+        return;
+    }
+}
+
 app.get('/users', (req, res)=>{
     res.status(200).json({
-        success: '',
-        users: users.map(user => ({
-            username: user.username,
-            password: user.password
-        }))
+        users
     })
-})
+});
 
-app.get('/me', (req, res) =>{
-    const token = req.headers.token;
-    const decodedToken = jwt.verify(token, JWT_SECRET);
-    const username = decodedToken.username;
-    const foundUser = users.find(user => user.username === username)
-    if(foundUser){
+app.get('/me', authMiddleware, (req, res)=>{
+    const foundUser = req.currentUser;
+    if(typeof foundUser === 'object'){
         res.status(200).json({
-            message: '',
-            user: {
-                username: foundUser.username,
-                password: foundUser.password
-            }
-        });
+            message: 'user details sent',
+            ...foundUser
+        })
     } else {
         res.status(400).json({
-            message: 'invalid token'
+            message: 'Invalid token'
+        })
+    }
+});
+
+app.get('/', (req, res)=>{
+    res.sendFile(__dirname + '/public/index.html')
+});
+
+app.post('/signup', (req, res)=>{
+    const username = req.body.username;
+    const password = req.body.password;
+    if(username && password){
+        users.push({
+            username,
+            password
+        })
+        res.status(200).json({
+            message: 'Signup successfuly'
+        })  
+    } else {
+        res.status(400).json({
+            message: 'Invalid payload'
+        })
+    }
+});
+
+
+app.post('/signin', (req, res)=>{
+    const username = req.body.username;
+    const password = req.body.password;
+    const foundUser = users.find(user => user.username === username && user.password === password)
+    if(foundUser){
+        const token = jwt.sign({
+            username: username
+        }, JWT_SECRET)
+        res.status(200).json({
+            message: 'Signin successfuly',
+            token
+        })  
+    } else {
+        res.status(400).json({
+            message: 'Invalid payload'
         })
     }
 })
 
-const singupHandler = (req, res)=>{ 
-    const user = req.body.username;
-    const pass = req.body.password;
-    users.push({
-        username: user,
-        password: pass
-    })
-    res.status(200).json({
-        message: 'You have signed up'
-    });
-}
-app.post('/signup', singupHandler)
 
-
-const singinHandler = (req, res)=>{
-    const user = req.body.username;
-    const pass = req.body.password;
-    const foundUser = users.find(savedUser => savedUser.username === user && savedUser.password === pass)
-
-    if(foundUser){
-        const token = jwt.sign({
-            username: user
-        }, JWT_SECRET);
-        // foundUser.token = token // NO need to store the token or JWT in db as JWT is a stateless token
-        res.status(200).json({
-            message: 'Signed in successfully',
-            token,
-        })
-    } else {
-        res.status(403).json({
-            message: 'Invalid username and password'
-        })
-    }
-}
-app.post('/signin', singinHandler)
-
-app.listen(3000, () => {
-    console.log('app is listening on port 3000')
+app.listen(3000, ()=>{
+    console.log('app started on port 3000')
 })

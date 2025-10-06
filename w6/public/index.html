@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.11.0/axios.min.js" referrerpolicy="no-referrer"></script>
+    <!-- <script>
+        document.addEventListener('DOMContentLoaded', ()=>{
+            
+        })
+    </script> -->
+</head>
+<body>
+    <div id="signup">
+        Sign Up:
+        <input type="text" placeholder="username" value="a" id="signup-name">
+        <input type="password" placeholder="password" value="a" id="signup-pass">
+        <input type="button" value="Submit" id="signup-submit" onclick="signUp()">
+    </div>
+    <div id="signin">
+        Sign In:
+        <input type="text" placeholder="username" value="a" id="signin-name">
+        <input type="password" placeholder="password" value="a" id="signin-pass">
+        <input type="button" value="Submit" id="signin-submit" onclick="signIn()">
+    </div>
+    <div id="user-info"></div>
+    <input type="button" value="Log Out" id="logout" onclick="logOut()">
+    <script>
+            async function getMyInfo(){
+                const token = localStorage.getItem('token');
+                
+                if(token){
+                    let response;
+                    try {
+                        response = (await axios.get('http://localhost:3000/me', {
+                        headers: {
+                            token
+                        }
+                    })).data;
+                    } catch (error) {
+                        response = undefined   
+                    }
+                    if(response?.username && response?.password){
+                        isSignedIn = true;
+                        hideAndShowUI(response);
+                    } else {
+                        isSignedIn = false;
+                        hideAndShowUI(response);
+                    }
+                } else {
+                    isSignedIn = false;
+                    hideAndShowUI();
+                }
+            }
+            function hideAndShowUI(response){
+                if(!isSignedIn){
+                    document.querySelector('#signup').style.display = 'block'
+                    document.querySelector('#signin').style.display = 'block'
+                    document.querySelector('#user-info').style.display = 'none';
+                    document.querySelector('#logout').style.display = 'none'
+                } else {
+                    document.querySelector('#user-info').innerHTML = `User Info: </br> username: ${response?.username} password: ${response?.password}`;
+                    document.querySelector('#user-info').style.display = 'block'
+                    document.querySelector('#logout').style.display = 'block'
+                    document.querySelector('#signup').style.display = 'none'
+                    document.querySelector('#signin').style.display = 'none'
+                }
+            }
+            async function signUp(){
+                const username = document.querySelector('#signup-name').value;
+                const password = document.querySelector('#signup-pass').value;
+                await axios.post('http://localhost:3000/signup', {
+                    username,password
+                })
+                alert('SignUp successfully')
+            }
+            async function signIn(){
+                const username = document.querySelector('#signin-name').value;
+                const password = document.querySelector('#signin-pass').value;
+                const token = (await axios.post('http://localhost:3000/signin', {
+                    username,password
+                })).data;
+                localStorage.setItem('token', token.token);
+                await getMyInfo()
+                alert('SignIn successfully')
+            }
+            async function logOut(){
+                localStorage.removeItem('token');
+                await getMyInfo();
+            }
+            var isSignedIn = false
+            getMyInfo();
+    </script>
+</body>
+</html>
