@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.11.0/axios.min.js" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+<div id="signup">
+        Sign Up:
+        <input type="text" placeholder="username" value="Shashikant" id="signup-name">
+        <input type="password" placeholder="password" value="123" id="signup-pass">
+        <input type="button" value="Submit" id="signup-submit" onclick="signUp()">
+    </div>
+    <div id="signin">
+        Sign In:
+        <input type="text" placeholder="username" value="Shashikant" id="signin-name">
+        <input type="password" placeholder="password" value="123" id="signin-pass">
+        <input type="button" value="Submit" id="signin-submit" onclick="signIn()">
+    </div>
+    <div id="user-todos"></div>
+    <input type="button" value="Log Out" id="logout" onclick="logOut()">
+    <script>
+            async function getTodos(){
+                const token = localStorage.getItem('token');
+                if(token){
+                    let response;
+                    try {
+                        response = (await axios.get('http://localhost:3000/todos', {
+                        headers: {
+                            token
+                        }
+                    })).data;
+                    } catch (error) {
+                        response = undefined   
+                    }
+                    if(response?.todos){
+                        isSignedIn = true;
+                        hideAndShowUI(response.todos);
+                    } else {
+                        isSignedIn = false;
+                        hideAndShowUI();
+                    }
+                } else {
+                    isSignedIn = false;
+                    hideAndShowUI();
+                }
+            }
+            function hideAndShowUI(todos){
+                const signup = document.querySelector('#signup')
+                const signin = document.querySelector('#signin');
+                const userTodos = document.querySelector('#user-todos');
+                const logout = document.querySelector('#logout');
+                if(!isSignedIn){
+                    signup.style.display = 'block'
+                    signin.style.display = 'block'
+                    userTodos.style.display = 'none';
+                    logout.style.display = 'none'
+                } else {
+                    const todosTemplate = todos.map(todo => `
+                        <li>${todo.text}</li>
+                    `);
+                    userTodos.innerHTML = `TODOS: </br> <ul>${todosTemplate}</ul>`;
+                    userTodos.style.display = 'block'
+                    logout.style.display = 'block'
+                    signup.style.display = 'none'
+                    signin.style.display = 'none'
+                }
+            }
+            async function signUp(){
+                const username = document.querySelector('#signup-name').value;
+                const password = document.querySelector('#signup-pass').value;
+                await axios.post('http://localhost:3000/signup', {
+                    username,password
+                })
+                alert('SignUp successfully')
+            }
+            async function signIn(){
+                const username = document.querySelector('#signin-name').value;
+                const password = document.querySelector('#signin-pass').value;
+                const token = (await axios.post('http://localhost:3000/signin', {
+                    username,password
+                })).data;
+                localStorage.setItem('token', token.token);
+                await getTodos()
+                alert('SignIn successfully')
+            }
+            async function logOut(){
+                localStorage.removeItem('token');
+                await getTodos();
+            }
+            var isSignedIn = false
+            getTodos();
+    </script>
+</body>
+</html>
