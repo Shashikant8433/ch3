@@ -47,6 +47,7 @@
                     hideAndShowUI();
                 }
             }
+            
             function hideAndShowUI(todos){
                 const signup = document.querySelector('#signup')
                 const signin = document.querySelector('#signin');
@@ -59,15 +60,18 @@
                     logout.style.display = 'none'
                 } else {
                     const todosTemplate = todos.map(todo => `
-                        <li>${todo.text}</li>
+                        <li>${todo.text}</li> 
+                        <button type="button" onclick="editTodo(${todo.id}, '${todo.text}')">edit</button>&nbsp;
+                        <button type="button" onclick="deleteTodo(${todo.id}, '${todo.text}')">delete</button>&nbsp;
                     `);
-                    userTodos.innerHTML = `TODOS: </br> <ul>${todosTemplate}</ul>`;
+                    userTodos.innerHTML = `TODOS: </br> <button type="button" onclick="createTodo()">create</button></br> <ul>${todosTemplate}</ul>`;
                     userTodos.style.display = 'block'
                     logout.style.display = 'block'
                     signup.style.display = 'none'
                     signin.style.display = 'none'
                 }
             }
+            
             async function signUp(){
                 const username = document.querySelector('#signup-name').value;
                 const password = document.querySelector('#signup-pass').value;
@@ -76,6 +80,7 @@
                 })
                 alert('SignUp successfully')
             }
+            
             async function signIn(){
                 const username = document.querySelector('#signin-name').value;
                 const password = document.querySelector('#signin-pass').value;
@@ -86,10 +91,36 @@
                 await getTodos()
                 alert('SignIn successfully')
             }
+            
             async function logOut(){
                 localStorage.removeItem('token');
                 await getTodos();
             }
+            
+            async function createTodo(){
+                const todo = prompt('Add new Todo: ');
+                const token = localStorage.getItem('token');
+                if(todo.length){
+                    await axios.post('http://localhost:3000/todo', {todo}, {headers: {token}});
+                }
+                await getTodos();
+            }
+
+            async function editTodo(id, oldTodo){
+                const todo = prompt('Edit todo: ', oldTodo)
+                const token = localStorage.getItem('token');
+                if(todo.length){
+                    await axios.patch('http://localhost:3000/todo', {id, todo}, {headers: {token}})
+                }
+                await getTodos();
+            }
+
+            async function deleteTodo(id, todo){
+                const token = localStorage.getItem('token');
+                await axios.delete('http://localhost:3000/todo',{headers: {token: token}, data: {todoId: id, todo: todo}})
+                await getTodos();
+            }
+
             var isSignedIn = false
             getTodos();
     </script>
